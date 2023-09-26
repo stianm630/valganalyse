@@ -1,0 +1,27 @@
+import csv
+import requests
+from bs4 import BeautifulSoup
+ 
+urls = 'https://www.banenor.no/reise-og-trafikk/stasjoner/'
+grab = requests.get(urls)
+soup = BeautifulSoup(grab.text, 'html.parser')
+
+urls = []
+
+for link in soup.find_all('a', class_='bn-listCard__link'):
+    urls.append([link.get_text(),'https://www.banenor.no'+link.get('href')])
+
+
+for x in range(len(urls)):
+    grab = requests.get(urls[x][1])
+    soup = BeautifulSoup(grab.text, 'html.parser')
+    
+    for kommune in soup.find_all('strong', text={'Kommune','Kommune:'}):
+        urls[x].append((kommune.nextSibling).strip(': '))
+
+#print(*urls, sep='\n')
+fields = ['Stasjon','Link','Kommune']
+with open('jernbanestasjoner.csv', 'w', newline='') as f:
+    write = csv.writer(f)
+    write.writerow(fields)
+    write.writerows(urls)
